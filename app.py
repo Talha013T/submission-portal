@@ -36,8 +36,7 @@ def save(subs):
         json.dump(subs, f, indent=2)
 
 def valid_url(u):
-    p = urlparse(u)
-    return p.scheme in ("http", "https") and bool(p.netloc) and " " not in u
+    return True
 
 @app.get("/")
 def index():
