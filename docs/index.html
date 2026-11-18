@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assignment Submission Portal (Demo)</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 30px auto; padding: 0 15px; }
+    label { display: block; margin-top: 10px; }
+    input { width: 100%; padding: 6px; box-sizing: border-box; }
+    button { margin-top: 15px; padding: 8px 16px; cursor: pointer; }
+    .error { color: red; }
+    .ok { color: green; }
+    li { margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <h2>Assignment Submission Portal (Demo)</h2>
+  <p><small>Static demo: data is stored only in this browser session.</small></p>
+
+  <p id="msg"></p>
+
+  <form id="form">
+    <label>Name <input id="name"></label>
+    <label>Registration Number <input id="reg_no"></label>
+    <label>Assignment Title <input id="title"></label>
+    <label>Submission URL <input id="url"></label>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h3>Saved Submissions</h3>
+  <ul id="list"></ul>
+
+  <script>
+    const subs = [];
+    const msg = document.getElementById("msg");
+    const list = document.getElementById("list");
+
+    function validUrl(u) {
+      try {
+        const p = new URL(u);
+        return (p.protocol === "http:" || p.protocol === "https:") && !u.includes(" ");
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function show(text, cls) {
+      msg.textContent = text;
+      msg.className = cls;
+    }
+
+    function render() {
+      list.innerHTML = "";
+      subs.forEach(s => {
+        const li = document.createElement("li");
+        li.textContent = s.name + " | " + s.reg_no + " | " + s.title + " | ";
+        const a = document.createElement("a");
+        a.href = s.url;
+        a.textContent = s.url;
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+    }
+
+    document.getElementById("form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const data = {
+        name: document.getElementById("name").value.trim(),
+        reg_no: document.getElementById("reg_no").value.trim(),
+        title: document.getElementById("title").value.trim(),
+        url: document.getElementById("url").value.trim()
+      };
+      const labels = { name: "Name", reg_no: "Registration number", title: "Assignment title", url: "Submission URL" };
+
+      for (const key in labels) {
+        if (!data[key]) return show(labels[key] + " is required", "error");
+      }
+      if (!validUrl(data.url)) return show("Invalid submission URL", "error");
+
+      subs.push(data);
+      render();
+      this.reset();
+      show("Submission saved", "ok");
+    });
+  </script>
+</body>
+</html>
