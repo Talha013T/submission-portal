@@ -15,18 +15,46 @@ jobs:
         continue-on-error: true
         run: python -m pytest --json-report --json-report-file=raw.json
 
-      - name: Send report (localhost + email)
+      - name: Upload raw results
         if: always()
-        env:
-          REPORT_URL: ${{ secrets.REPORT_URL }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASS: ${{ secrets.SMTP_PASS }}
-          MAIL_TO: ${{ secrets.MAIL_TO }}
-        run: python send_report.py
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-results
+          path: raw.json
 
       - name: Fail job if tests failed
         if: steps.tests.outcome == 'failure'
         run: exit 1
+
+  report:
+    needs: test
+    if: always()
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: raw-results
+      - name: Send report to localhost receiver
+        env:
+          REPORT_URL: ${{ secrets.REPORT_URL }}
+        run: python send_report.py receiver
+
+  email:
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: raw-results
+      - name: Send report by email
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: python send_report.py email
 
   deploy:
     needs: test
