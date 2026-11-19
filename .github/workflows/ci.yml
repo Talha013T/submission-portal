@@ -15,10 +15,13 @@ jobs:
         continue-on-error: true
         run: python -m pytest --json-report --json-report-file=raw.json
 
-      - name: Send report to localhost receiver
+      - name: Send report (localhost + email)
         if: always()
         env:
           REPORT_URL: ${{ secrets.REPORT_URL }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
         run: python send_report.py
 
       - name: Fail job if tests failed
